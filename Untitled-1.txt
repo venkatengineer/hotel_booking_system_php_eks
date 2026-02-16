@@ -1,0 +1,94 @@
+-- -----------------------------    
+-- MOODFOODIE DATABASE STRUCTURE
+-- -----------------------------
+
+DROP TABLE IF EXISTS mood_recipes;
+DROP TABLE IF EXISTS recipe_ingredients;
+DROP TABLE IF EXISTS ingredients;
+DROP TABLE IF EXISTS recipes;
+DROP TABLE IF EXISTS moods;
+
+-- Moods Table
+CREATE TABLE moods (
+    mood_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    mood_name TEXT UNIQUE NOT NULL,
+    description TEXT
+);
+
+-- Recipes Table
+CREATE TABLE recipes (
+    recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    recipe_name TEXT NOT NULL,
+    cook_time INTEGER,
+    calories INTEGER,
+    image_url TEXT,
+    instructions TEXT
+);
+
+-- Ingredients Table
+CREATE TABLE ingredients (
+    ingredient_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    category TEXT
+);
+
+-- Junction table between Recipes and Ingredients
+CREATE TABLE recipe_ingredients (
+    recipe_id INTEGER,
+    ingredient_id INTEGER,
+    FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id),
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(ingredient_id)
+);
+
+-- Junction table between Moods and Recipes
+CREATE TABLE mood_recipes (
+    mood_id INTEGER,
+    recipe_id INTEGER,
+    FOREIGN KEY (mood_id) REFERENCES moods(mood_id),
+    FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
+);
+
+-- -----------------------------
+-- SAMPLE DATA INSERTION
+-- -----------------------------
+
+-- Moods
+INSERT INTO moods (mood_name, description) VALUES
+('Happy', 'Feeling energetic and joyful'),
+('Sad', 'Need something comforting'),
+('Lazy', 'Don’t want to cook much'),
+('Romantic', 'Feeling love in the air'),
+('Angry', 'Need spicy food to calm down');
+
+-- Recipes
+INSERT INTO recipes (recipe_name, cook_time, calories, image_url, instructions) VALUES
+('Pasta Alfredo', 20, 450, 'https://i.imgur.com/lpT9mXc.jpg', 'Boil pasta, add creamy sauce, mix and serve.'),
+('Chocolate Cake', 30, 500, 'https://i.imgur.com/3j8b4Jk.jpg', 'Mix flour, cocoa, sugar, bake and frost.'),
+('Grilled Sandwich', 10, 300, 'https://i.imgur.com/Mk6m1Ak.jpg', 'Toast bread with cheese and veggies.'),
+('Soup Bowl', 15, 150, 'https://i.imgur.com/mxjG2Vz.jpg', 'Boil veggies, add spices, serve hot.'),
+('Spicy Noodles', 10, 350, 'https://i.imgur.com/8G7K6vJ.jpg', 'Cook noodles with chili and sauce.');
+
+-- Ingredients
+INSERT INTO ingredients (name, category) VALUES
+('Pasta', 'Veg'),
+('Cheese', 'Veg'),
+('Chocolate', 'Veg'),
+('Bread', 'Veg'),
+('Noodles', 'Veg'),
+('Veggies', 'Veg');
+
+-- Recipe-Ingredient Mapping
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id) VALUES
+(1, 1), (1, 2),
+(2, 3),
+(3, 4), (3, 2),
+(4, 6),
+(5, 5), (5, 6);
+
+-- Mood-Recipe Mapping
+INSERT INTO mood_recipes (mood_id, recipe_id) VALUES
+(1, 1), (1, 2),  -- Happy
+(2, 4), (2, 2),  -- Sad
+(3, 3), (3, 4),  -- Lazy
+(4, 1), (4, 2),  -- Romantic
+(5, 5);          -- Angry
