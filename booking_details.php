@@ -101,6 +101,7 @@ function prepareDates(){
     var toManual   = document.getElementById("to_manual").value.trim();
 
     // If manual entered → use manual
+    //A
     if(fromManual !== "") from = convertToDB(fromManual);
     if(toManual !== "")   to   = convertToDB(toManual);
 

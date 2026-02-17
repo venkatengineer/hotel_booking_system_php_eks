@@ -9,6 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 /* Check role safely (PHP 5 compatible) */
+/* L */
 if (!isset($_SESSION['role']) || strtolower($_SESSION['role']) != 'admin') {
     header("Location: dashboard.php");
     exit();

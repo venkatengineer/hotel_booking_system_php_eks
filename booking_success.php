@@ -96,6 +96,7 @@ p{
 </form>
 
 <!-- Add Another Booking -->
+<!-- R-->
 <form action="register_booking.php" method="get">
     <button class="btn add">Add Another Booking</button>
 </form>

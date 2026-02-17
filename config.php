@@ -3,6 +3,7 @@ $host = "localhost";
 $username = "root";
 $password = "";
 $database = "db_eks";
+/* N */
 
 $conn = new mysqli($host, $username, $password, $database);
 

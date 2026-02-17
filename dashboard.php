@@ -68,7 +68,7 @@ if(!isset($_SESSION['user_id'])) {
 }
 
 
-/* ===== SHINE SWEEP EFFECT ===== */
+
 .main-title::before {
     content: "";
     position: absolute;
@@ -85,7 +85,7 @@ if(!isset($_SESSION['user_id'])) {
     transform: skewX(-25deg);
 }
 
-/* Animate shine on hover */
+
 .main-title:hover::before {
     animation: shineMove 0.9s ease forwards;
 }
@@ -108,7 +108,7 @@ if(!isset($_SESSION['user_id'])) {
     letter-spacing : 0.5px;
 }
 
-/* ===== BREATHING GLOW ANIMATION ===== */
+
 @keyframes glowPulse {
     0% {
         text-shadow: 0 0 6px rgba(185,251,192,0.4),
@@ -129,7 +129,7 @@ if(!isset($_SESSION['user_id'])) {
 }
 
 
-/* Welcome text — Less Important */
+
 .welcome-text {
     text-align: center;
     color: #888;
@@ -144,7 +144,7 @@ if(!isset($_SESSION['user_id'])) {
             margin-bottom: 40px;
         }
 
-        /* ===== TOP ADMIN BAR ===== */
+        
 
         .top-Admin {
             display: flex;
@@ -168,7 +168,7 @@ if(!isset($_SESSION['user_id'])) {
             transform: translateY(-3px);
         }
 
-        /* ===== MIDDLE BIG WIDGETS ===== */
+       
 
         .widget-grid {
             display: grid;
@@ -203,7 +203,7 @@ if(!isset($_SESSION['user_id'])) {
             margin: 0;
         }
 
-        /* ===== BOTTOM SECTION ===== */
+       
 
         .bottom-grid {
             display: flex;
@@ -249,7 +249,7 @@ if(!isset($_SESSION['user_id'])) {
 
 
 
-        <!-- ===== TOP ADMIN ONLY ===== -->
+        
          <?php
 $role = isset($_SESSION['role']) ? trim($_SESSION['role']) : '';
 if (strcasecmp($role, 'admin') === 0):
@@ -284,6 +284,7 @@ if (strcasecmp($role, 'admin') === 0):
         </div>
 
         <!-- ===== BOTTOM BUTTONS ===== -->
+<!-- K -->
         <div class="bottom-grid">
             <a href="invoice_payments.php" class="bottom-btn">💳 Payment and Invoice</a>
             <a href="billing_report.php" class="bottom-btn">📊 Billing Report</a>

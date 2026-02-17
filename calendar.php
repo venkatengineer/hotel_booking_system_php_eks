@@ -76,7 +76,7 @@ elseif ($paid >= $total && $total > 0) {
     $statusIcon = "🟢"; // Fully Paid
 }
 
-$endDate = date('Y-m-d', strtotime($row['booking_to'].' +1 day'));
+$endDate = date('d-m-Y', strtotime($row['booking_to'].' +1 day'));
         $events[] = [
     "title" => $statusIcon . " " . $roomName,
 
@@ -93,8 +93,9 @@ $endDate = date('Y-m-d', strtotime($row['booking_to'].' +1 day'));
         "customer"   => $row['full_name'],
         "phone"      => $row['phone'],
         "room"       => $roomName,
-        "from"       => $row['booking_from'],
-        "to"         => $row['booking_to']
+        "from" => date('d-m-Y', strtotime($row['booking_from'])),
+        "to"   => date('d-m-Y', strtotime($row['booking_to']))
+
     ]
 ];
 
@@ -282,6 +283,7 @@ window.onclick = function(e){
 };
 
 /* BACK BUTTON */
+/* U */
 function goBack() {
     window.history.back();
 }

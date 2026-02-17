@@ -7,10 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-/*
-FETCH EVERYTHING IN ONE QUERY
-(Adjust field names if slightly different)
-*/
+/* FETCH EVERYTHING IN ONE QUERY */
 
 $sql = "
 SELECT
@@ -65,11 +62,8 @@ $result = mysqli_query($conn,$sql);
 <title>Billing Report</title>
 
 <!-- DATATABLE CSS -->
-<link rel="stylesheet"
-href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-
-<link rel="stylesheet"
-href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
 
 <style>
 body{
@@ -89,6 +83,18 @@ box-shadow:0 20px 40px rgba(0,0,0,.1);
 h2{
 color:#2d6a4f;
 margin-bottom:20px;
+}
+
+/* Enable horizontal scrolling container */
+.dataTables_wrapper{
+width:100%;
+overflow-x:auto;
+}
+
+/* Prevent text wrapping */
+table.dataTable tbody th,
+table.dataTable tbody td{
+white-space:nowrap;
 }
 </style>
 </head>
@@ -113,7 +119,7 @@ margin-bottom:20px;
 <th>Check-In</th>
 <th>Check-Out</th>
 <th>Amount Due</th>
-<th>Discount</th>
+
 <th>Net Amount</th>
 <th>Reference No</th>
 </tr>
@@ -125,7 +131,6 @@ margin-bottom:20px;
 $sn = 1;
 while($row=mysqli_fetch_assoc($result)){
 ?>
-
 <tr>
 <td><?php echo $sn++; ?></td>
 <td><?php echo $row['invoice_no']; ?></td>
@@ -134,14 +139,13 @@ while($row=mysqli_fetch_assoc($result)){
 <td><?php echo $row['full_name']; ?></td>
 <td><?php echo $row['nationality']; ?></td>
 <td><?php echo $row['no_of_days']; ?></td>
-<td><?php echo date('d-m-Y',strtotime($row['check_in'])); ?></td>
-<td><?php echo date('d-m-Y',strtotime($row['check_out'])); ?></td>
+<td><?php echo date('d-m-Y',strtotime($row['booking_from'])); ?></td>
+<td><?php echo date('d-m-Y',strtotime($row['booking_to'])); ?></td>
 <td><?php echo number_format($row['amount_due'],2); ?></td>
-<td><?php echo number_format($row['discount'],2); ?></td>
+
 <td><?php echo number_format($row['net_amount'],2); ?></td>
 <td><?php echo $row['reference_no']; ?></td>
 </tr>
-
 <?php } ?>
 
 </tbody>
@@ -151,7 +155,6 @@ while($row=mysqli_fetch_assoc($result)){
 
 <!-- JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
 <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
@@ -161,21 +164,26 @@ while($row=mysqli_fetch_assoc($result)){
 <script>
 $(document).ready(function(){
 
-$('#billingTable').DataTable({
+    $('#billingTable').DataTable({
 
-    "pageLength": 25,
+        "pageLength": 25,
+        "dom": 'Bfrtip',
 
-    "dom": 'Bfrtip',
+        "buttons": [
+            'excel',
+            'csv',
+            'print'
+        ],
 
-    "buttons": [
-        'excel',
-        'csv',
-        'print'
-    ],
+        "order": [[0,"desc"]],
 
-    "order": [[0,"desc"]]
+        /* Horizontal scroll */
+        "scrollX": true,
 
-});
+        /* Proper column sizing */
+        /* H */
+        "autoWidth": false
+    });
 
 });
 </script>

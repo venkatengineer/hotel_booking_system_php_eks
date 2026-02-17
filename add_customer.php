@@ -144,6 +144,7 @@ function toggleIdFields() {
 nationality.onchange = toggleIdFields;
 
 /* ✅ Run once when page loads (THIS FIXES YOUR ISSUE) */
+/* I */
 window.onload = function(){
     toggleIdFields();
 };

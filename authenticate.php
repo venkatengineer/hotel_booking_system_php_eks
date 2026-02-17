@@ -36,6 +36,7 @@ if ($result->num_rows === 1) {
     if (password_verify($password, $user['password_hash'])) {
 
         /* Normalize role to lowercase */
+        /* T */
         $role = strtolower(trim($user['role']));
 
         $_SESSION['user_id'] = $user['user_id'];
