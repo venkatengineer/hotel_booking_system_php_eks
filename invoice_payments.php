@@ -18,6 +18,30 @@ if (!empty($_GET['q'])) {
         a.asset_name LIKE '%$search%' OR
         b.booking_id LIKE '%$search%' ";
 }
+/* PAGINATION */
+$records_per_page = 10;
+
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+
+$offset = ($page - 1) * $records_per_page;
+
+/* COUNT TOTAL RECORDS */
+
+$count_sql = "
+SELECT COUNT(DISTINCT b.booking_id) AS total
+FROM tbl_bookings b
+JOIN tbl_customers c ON c.customer_id = b.customer_id
+JOIN tbl_assets a ON a.asset_id = b.asset_id
+$search_sql
+";
+
+$count_result = mysqli_query($conn, $count_sql);
+$count_row = mysqli_fetch_assoc($count_result);
+$total_records = $count_row['total'];
+
+$total_pages = ceil($total_records / $records_per_page);
+
 
 /* QUERY */
 
@@ -61,6 +85,8 @@ $search_sql
 
 GROUP BY b.booking_id
 ORDER BY b.booking_from DESC
+LIMIT $offset, $records_per_page
+
 ";
 
 $result = mysqli_query($conn,$sql);
@@ -76,6 +102,28 @@ body{
     font-family:'Segoe UI',sans-serif;
     color:#2d6a4f;
 }
+.actions{
+    margin:15px 0;
+}
+
+.btn{
+    display:inline-block;
+    padding:8px 16px;
+    margin-right:8px;
+    border-radius:20px;
+    background:linear-gradient(90deg,#b9fbc0,#ffc6d9);
+    color:#2d6a4f;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 6px 12px rgba(0,0,0,0.08);
+}
+
 
 /* wrapper allows horizontal scroll like excel */
 /* Wrapper must allow horizontal scroll */
@@ -182,6 +230,33 @@ padding:8px;
 background:#f7fbf8;
 border-radius:8px;
 }
+.pagination{
+    margin-top:20px;
+    text-align:center;
+}
+
+.pagination a{
+    display:inline-block;
+    padding:8px 14px;
+    margin:3px;
+    background:#f1f7f3;
+    color:#2d6a4f;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:500;
+    transition:0.2s;
+}
+
+.pagination a:hover{
+    background:#b9fbc0;
+}
+
+.pagination a.active{
+    background:#2d6a4f;
+    color:white;
+    font-weight:600;
+}
+
 
 .bankBox input{
 display:block;
@@ -214,10 +289,52 @@ margin-bottom:5px;
     font-size:11px;
     color:#777;
 }
+@media print{
+
+body{
+    background:white !important;
+}
+
+.wrapper{
+    overflow:visible !important;
+}
+
+.card{
+    box-shadow:none;
+    width:100% !important;
+    display:block !important;
+}
+
+table{
+    width:100% !important;
+    table-layout:auto !important;
+}
+
+td,th{
+    white-space:normal !important;
+    font-size:12px;
+    padding:6px;
+}
+
+input,select,button,.bankBox,.actions{
+    display:none !important;
+}
+
+h2{
+    margin-bottom:10px;
+}
+
+}
+
+
+
 </style>
 
 
 <script>
+    function printPage(){
+    window.print();
+}
 function toggleBank(selectObj)
 {
     var bankBox = selectObj.parentNode.querySelector('.bankBox');
@@ -248,6 +365,11 @@ function toggleBank(selectObj)
 </form>
 
 <br>
+<div class="actions">
+    <a href="export_invoice_payments.php?q=<?php echo urlencode($search); ?>" class="btn">⬇ Export CSV</a>
+    <button onclick="printPage()" class="btn">🖨 Print</button>
+</div>
+
 
 <table>
 <tr>
@@ -336,6 +458,27 @@ value="<?php echo (int)$row['invoice_id']; ?>">
 
 
 </table>
+<div class="pagination">
+
+<?php if($page > 1){ ?>
+<a href="?page=<?php echo $page-1; ?>&q=<?php echo urlencode($search); ?>">← Prev</a>
+<?php } ?>
+
+<?php for($i=1; $i <= $total_pages; $i++){ ?>
+
+<a class="<?php if($i==$page) echo 'active'; ?>"
+href="?page=<?php echo $i; ?>&q=<?php echo urlencode($search); ?>">
+<?php echo $i; ?>
+</a>
+
+<?php } ?>
+
+<?php if($page < $total_pages){ ?>
+<a href="?page=<?php echo $page+1; ?>&q=<?php echo urlencode($search); ?>">Next →</a>
+<?php } ?>
+
+</div>
+
 
 </div>
 </div>
