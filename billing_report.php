@@ -73,6 +73,12 @@ width:100%;
 padding:4px;
 box-sizing:border-box;
 }
+
+#billingTable {
+    width: 100% !important;
+    min-width: 1800px;
+}
+
 </style>
 </head>
 
