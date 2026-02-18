@@ -8,16 +8,39 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 /* SEARCH */
-$search = "";
-$search_sql = "";
+/* SEARCH */
+$s_booking = isset($_GET['s_booking']) ? mysqli_real_escape_string($conn, $_GET['s_booking']) : '';
+$s_customer= isset($_GET['s_customer'])? mysqli_real_escape_string($conn, $_GET['s_customer']) : '';
+$s_room    = isset($_GET['s_room'])    ? mysqli_real_escape_string($conn, $_GET['s_room'])     : '';
+$s_days    = isset($_GET['s_days'])    ? mysqli_real_escape_string($conn, $_GET['s_days'])     : '';
+$s_checkin = isset($_GET['s_checkin']) ? mysqli_real_escape_string($conn, $_GET['s_checkin'])  : '';
+$s_checkout= isset($_GET['s_checkout'])? mysqli_real_escape_string($conn, $_GET['s_checkout']) : '';
+$s_base    = isset($_GET['s_base'])    ? mysqli_real_escape_string($conn, $_GET['s_base'])     : '';
+$s_due     = isset($_GET['s_due'])     ? mysqli_real_escape_string($conn, $_GET['s_due'])      : '';
+$s_paid    = isset($_GET['s_paid'])    ? mysqli_real_escape_string($conn, $_GET['s_paid'])     : '';
+$s_out     = isset($_GET['s_out'])     ? mysqli_real_escape_string($conn, $_GET['s_out'])      : '';
 
-if (!empty($_GET['q'])) {
-    $search = mysqli_real_escape_string($conn,$_GET['q']);
-    $search_sql = " WHERE 
-        c.full_name LIKE '%$search%' OR
-        a.asset_name LIKE '%$search%' OR
-        b.booking_id LIKE '%$search%' ";
-}
+$where = [];
+if($s_booking) $where[] = "b.booking_id LIKE '%$s_booking%'";
+if($s_customer)$where[] = "c.full_name LIKE '%$s_customer%'";
+if($s_room)    $where[] = "a.asset_name LIKE '%$s_room%'";
+if($s_days)    $where[] = "DATEDIFF(b.booking_to, b.booking_from) LIKE '%$s_days%'";
+if($s_checkin) $where[] = "b.booking_from LIKE '%$s_checkin%'";
+if($s_checkout)$where[] = "b.booking_to LIKE '%$s_checkout%'";
+if($s_base)    $where[] = "r.rate_per_day LIKE '%$s_base%'";
+
+$having = [];
+if($s_due)     $having[] = "(base_rate * no_of_days) LIKE '%$s_due%'";
+if($s_paid)    $having[] = "paid_amount LIKE '%$s_paid%'";
+if($s_out)     $having[] = "((base_rate * no_of_days) - paid_amount) LIKE '%$s_out%'";
+
+$where_sql = "";
+if(count($where)>0) $where_sql = " WHERE ".implode(" AND ", $where);
+
+$having_sql = "";
+if(count($having)>0) $having_sql = " HAVING ".implode(" AND ", $having);
+
+
 /* PAGINATION */
 $records_per_page = 10;
 
@@ -29,11 +52,21 @@ $offset = ($page - 1) * $records_per_page;
 /* COUNT TOTAL RECORDS */
 
 $count_sql = "
-SELECT COUNT(DISTINCT b.booking_id) AS total
-FROM tbl_bookings b
-JOIN tbl_customers c ON c.customer_id = b.customer_id
-JOIN tbl_assets a ON a.asset_id = b.asset_id
-$search_sql
+SELECT COUNT(*) as total FROM (
+  SELECT b.booking_id, 
+  DATEDIFF(b.booking_to, b.booking_from) AS no_of_days, 
+  r.rate_per_day AS base_rate, 
+  IFNULL(SUM(p.amount),0) AS paid_amount
+  FROM tbl_bookings b
+  JOIN tbl_customers c ON c.customer_id = b.customer_id
+  JOIN tbl_assets a ON a.asset_id = b.asset_id
+  LEFT JOIN tbl_rates r ON r.asset_id = b.asset_id AND r.effective_to = '2036-12-31'
+  LEFT JOIN tbl_invoices i ON i.booking_id = b.booking_id
+  LEFT JOIN tbl_payments p ON p.invoice_id = i.invoice_id
+  $where_sql
+  GROUP BY b.booking_id
+  $having_sql
+) as temp_table
 ";
 
 $count_result = mysqli_query($conn, $count_sql);
@@ -81,9 +114,10 @@ LEFT JOIN tbl_invoices i ON i.booking_id = b.booking_id
 LEFT JOIN tbl_payments p ON p.invoice_id = i.invoice_id
 LEFT JOIN tbl_bank_details bd ON bd.bank_id = p.bank_id
 
-$search_sql
+$where_sql
 
 GROUP BY b.booking_id
+$having_sql
 ORDER BY b.booking_from DESC
 LIMIT $offset, $records_per_page
 
@@ -345,6 +379,19 @@ function toggleBank(selectObj)
         bankBox.style.display = "block";
     }
 }
+function doFilter(e){
+    if(e.key === 'Enter'){
+        var params = new URLSearchParams();
+        // Collect all inputs with class 'filter-input'
+        var inputs = document.querySelectorAll('.filter-input');
+        inputs.forEach(function(inp){
+            if(inp.value.trim() !== ""){
+                params.append(inp.name, inp.value.trim());
+            }
+        });
+        window.location.href = "?" + params.toString();
+    }
+}
 </script>
 
 
@@ -359,9 +406,8 @@ function toggleBank(selectObj)
 <h2>Invoice Payments</h2>
 
 <form method="GET">
-<input type="text" name="q" placeholder="Search..." value="<?php echo htmlspecialchars($search); ?>">
-<button type="submit">Search</button>
-<a href="invoice_payments.php">Reset</a>
+<span class="small">Press Enter in any column to search</span>
+<a href="invoice_payments.php">Reset Filters</a>
 </form>
 
 <br>
@@ -388,6 +434,23 @@ function toggleBank(selectObj)
 <th>Save</th>
 </tr>
 
+<!-- FILTER ROW -->
+<tr style="background:#eefdf2;">
+    <td><input type="text" name="s_booking" class="filter-input" value="<?php echo htmlspecialchars($s_booking); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td><input type="text" name="s_customer" class="filter-input" value="<?php echo htmlspecialchars($s_customer); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td><input type="text" name="s_room" class="filter-input" value="<?php echo htmlspecialchars($s_room); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td><input type="text" name="s_days" class="filter-input" value="<?php echo htmlspecialchars($s_days); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td><input type="text" name="s_checkin" class="filter-input" value="<?php echo htmlspecialchars($s_checkin); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td><input type="text" name="s_checkout" class="filter-input" value="<?php echo htmlspecialchars($s_checkout); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td><input type="text" name="s_base" class="filter-input" value="<?php echo htmlspecialchars($s_base); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td><input type="text" name="s_due" class="filter-input" value="<?php echo htmlspecialchars($s_due); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td></td> <!-- Enter Payment -->
+    <td></td> <!-- Mode -->
+    <td><input type="text" name="s_paid" class="filter-input" value="<?php echo htmlspecialchars($s_paid); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td><input type="text" name="s_out" class="filter-input" value="<?php echo htmlspecialchars($s_out); ?>" onkeydown="doFilter(event)" style="width:90%;"></td>
+    <td></td> <!-- Save -->
+</tr>
+
 <?php while($row=mysqli_fetch_assoc($result)){
 
 $base  = (float)$row['base_rate'];
@@ -404,6 +467,8 @@ $out   = $due - $paid;
 <td><?php echo $row['booking_id']; ?></td>
 
 <td><?php echo htmlspecialchars($row['full_name']); ?></td>
+
+
 
 <td><?php echo htmlspecialchars($row['asset_name']); ?></td>
 
