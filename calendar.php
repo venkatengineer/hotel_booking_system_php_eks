@@ -76,7 +76,7 @@ elseif ($paid >= $total && $total > 0) {
     $statusIcon = "🟢"; // Fully Paid
 }
 
-$endDate = date('d-m-Y', strtotime($row['booking_to'].' +1 day'));
+$endDate = $row['booking_to'];
         $events[] = [
     "title" => $statusIcon . " " . $roomName,
 

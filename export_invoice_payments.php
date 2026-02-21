@@ -33,15 +33,19 @@ SELECT
     a.asset_name,
     b.booking_from,
     b.booking_to,
-    r.rate_per_day,
-    DATEDIFF(b.booking_to,b.booking_from) AS days,
-    IFNULL(SUM(p.amount),0) AS paid
+    GREATEST(DATEDIFF(b.booking_to, b.booking_from), 1) AS days,
+    i.subtotal,
+    i.total_amount AS due,
+    IFNULL(pay.paid_amount, 0) AS paid
 FROM tbl_bookings b
-JOIN tbl_customers c ON c.customer_id=b.customer_id
-JOIN tbl_assets a ON a.asset_id=b.asset_id
-LEFT JOIN tbl_rates r ON r.asset_id=b.asset_id AND r.effective_to='2036-12-31'
-LEFT JOIN tbl_invoices i ON i.booking_id=b.booking_id
-LEFT JOIN tbl_payments p ON p.invoice_id=i.invoice_id
+JOIN tbl_customers c ON c.customer_id = b.customer_id
+JOIN tbl_assets a ON a.asset_id = b.asset_id
+LEFT JOIN tbl_invoices i ON i.booking_id = b.booking_id
+LEFT JOIN (
+    SELECT p.invoice_id, SUM(p.amount) AS paid_amount
+    FROM tbl_payments p
+    GROUP BY p.invoice_id
+) pay ON pay.invoice_id = i.invoice_id
 $search_sql
 GROUP BY b.booking_id
 ORDER BY b.booking_from DESC
@@ -69,11 +73,11 @@ fputcsv($output, array(
 /* DATA ROWS */
 while ($row = mysqli_fetch_assoc($result)) {
 
-    $rate = (float)$row['rate_per_day'];
     $days = (int)$row['days'];
+    $sub  = (float)$row['subtotal'];
+    $rate = $days > 0 ? ($sub / $days) : $sub;
+    $due  = (float)$row['due'];
     $paid = (float)$row['paid'];
-
-    $due = $rate * $days;
     $outstanding = $due - $paid;
 
     /* Excel-safe date format */

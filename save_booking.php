@@ -26,13 +26,14 @@ if(!$customer_id || !$asset_id || !$booking_from || !$booking_to){
     die("Missing booking data.");
 }
 
-/* ===== CHECK RATE EXISTS ===== */
+/* ===== CHECK RATE EXISTS (Applicable for Check-in Date) ===== */
 $rateCheck = $conn->prepare("
 SELECT rate_per_day FROM tbl_rates
-WHERE asset_id=? AND effective_to='2036-12-31'
+WHERE asset_id=? AND ? BETWEEN effective_from AND effective_to
+ORDER BY updated_at DESC, rate_id DESC
 LIMIT 1
 ");
-$rateCheck->bind_param("i",$asset_id);
+$rateCheck->bind_param("is",$asset_id, $booking_from);
 $rateCheck->execute();
 $rateCheck->bind_result($rate_per_day);
 $rateCheck->fetch();
@@ -45,7 +46,7 @@ if(!$rate_per_day){
 /* ===== CHECK DATE CONFLICT ===== */
 $conflict = $conn->prepare("
 SELECT booking_id FROM tbl_bookings
-WHERE asset_id=? AND (booking_from <= ? AND booking_to >= ?)
+WHERE asset_id=? AND (booking_from < ? AND booking_to > ?)
 ");
 $conflict->bind_param("iss",$asset_id,$booking_to,$booking_from);
 $conflict->execute();

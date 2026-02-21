@@ -257,9 +257,13 @@ if (strcasecmp($role, 'admin') === 0):
 
 
         <div class="top-Admin">
+            <a href="view_rates.php" class="small-btn" style="background: #ffd6a5;">💰 Room Rates</a>
             <a href="assets.php" class="small-btn">🏨 Assets</a>
-            <a href="rates.php" class="small-btn">💰 Tariff</a>
             <a href="add_user.php" class="small-btn">➕ Add User</a>
+        </div>
+        <?php else: ?>
+        <div class="top-Admin" style="justify-content: flex-start;">
+             <a href="view_rates.php" class="small-btn" style="background: #ffd6a5;">💰 Room Rates</a>
         </div>
         <?php endif; ?>
 

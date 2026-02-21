@@ -10,4 +10,4 @@ SET effective_to = CURDATE()
 WHERE rate_id=$id
 ");
 
-header("Location: rates.php");
+header("Location: view_rates.php");
