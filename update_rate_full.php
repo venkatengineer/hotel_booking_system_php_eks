@@ -14,6 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 
 $rate_id       = (int)$_POST['rate_id'];
 $rate_per_day  = (float)$_POST['rate_per_day'];
+$rate_weekend  = isset($_POST['rate_weekend']) ? (float)$_POST['rate_weekend'] : 0;
+$rate_weekday  = isset($_POST['rate_weekday']) ? (float)$_POST['rate_weekday'] : 0;
+$rate_consession = isset($_POST['rate_consession']) ? (float)$_POST['rate_consession'] : 0;
+$rate_long_stay  = isset($_POST['rate_long_stay']) ? (float)$_POST['rate_long_stay'] : 0;
 $effective_from = $_POST['effective_from'];
 $effective_to   = $_POST['effective_to'];
 
@@ -42,10 +46,10 @@ $conn->query("
 /* UPDATE */
 $stmt = $conn->prepare("
     UPDATE tbl_rates 
-    SET rate_per_day = ?, effective_from = ?, effective_to = ? 
+    SET rate_per_day = ?, rate_weekend = ?, rate_weekday = ?, rate_consession = ?, rate_long_stay = ?, effective_from = ?, effective_to = ? 
     WHERE rate_id = ?
 ");
-$stmt->bind_param("dssi", $rate_per_day, $effective_from, $effective_to, $rate_id);
+$stmt->bind_param("dddddssi", $rate_per_day, $rate_weekend, $rate_weekday, $rate_consession, $rate_long_stay, $effective_from, $effective_to, $rate_id);
 
 if ($stmt->execute()) {
     header("Location: view_rates.php?success=1");

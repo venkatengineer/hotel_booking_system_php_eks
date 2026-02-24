@@ -2,8 +2,9 @@
 session_start();
 include 'config.php';
 
-if (!isset($_SESSION['user_id'])) {
-    exit("Unauthorized");
+if (!isset($_SESSION['user_id']) || strcasecmp($_SESSION['role'], 'admin') !== 0) {
+    header("Location: dashboard.php");
+    exit();
 }
 
 /* ---------- FIX FOR EXCEL UTF-8 ---------- */

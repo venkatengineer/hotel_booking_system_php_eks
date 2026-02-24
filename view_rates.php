@@ -2,8 +2,8 @@
 session_start();
 include 'config.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+if (!isset($_SESSION['user_id']) || strcasecmp($_SESSION['role'], 'admin') !== 0) {
+    header("Location: dashboard.php");
     exit();
 }
 
@@ -16,6 +16,10 @@ SELECT
     r.rate_id,
     a.asset_name, 
     r.rate_per_day, 
+    r.rate_weekend,
+    r.rate_weekday,
+    r.rate_consession,
+    r.rate_long_stay,
     r.effective_from, 
     r.effective_to,
     r.updated_at
@@ -195,6 +199,22 @@ $result = $conn->query($query);
                 <input type="number" step="0.01" name="rate_per_day" required>
             </div>
             <div class="form-group">
+                <label>Weekend</label>
+                <input type="number" step="0.01" name="rate_weekend" value="0.00">
+            </div>
+            <div class="form-group">
+                <label>Weekday</label>
+                <input type="number" step="0.01" name="rate_weekday" value="0.00">
+            </div>
+            <div class="form-group">
+                <label>Concession</label>
+                <input type="number" step="0.01" name="rate_consession" value="0.00">
+            </div>
+            <div class="form-group">
+                <label>Long Stay</label>
+                <input type="number" step="0.01" name="rate_long_stay" value="0.00">
+            </div>
+            <div class="form-group">
                 <label>Starting</label>
                 <input type="date" name="effective_from" value="<?= date('Y-m-d') ?>" required>
             </div>
@@ -225,6 +245,10 @@ $result = $conn->query($query);
             <tr>
                 <th>Room Type</th>
                 <th>Price / Day</th>
+                <th>Weekend</th>
+                <th>Weekday</th>
+                <th>Concession</th>
+                <th>Long Stay</th>
                 <th>Starting</th>
                 <th>Ended On</th>
                 <th>Last Updated</th>
@@ -233,6 +257,10 @@ $result = $conn->query($query);
             <tr class="search-row header-row-2">
                 <th><input type="text" class="col-search" placeholder="Search Room"></th>
                 <th><input type="text" class="col-search" placeholder="Search Price"></th>
+                <th><input type="text" class="col-search" placeholder="Search Weekend"></th>
+                <th><input type="text" class="col-search" placeholder="Search Weekday"></th>
+                <th><input type="text" class="col-search" placeholder="Search Concession"></th>
+                <th><input type="text" class="col-search" placeholder="Search Long Stay"></th>
                 <th><input type="text" class="col-search" placeholder="DD-MM-YYYY"></th>
                 <th><input type="text" class="col-search" placeholder="DD-MM-YYYY"></th>
                 <th><input type="text" class="col-search" placeholder="Search Date"></th>
@@ -251,7 +279,23 @@ $result = $conn->query($query);
                         </td>
                         <td>
                             <span style="display:none;"><?= $row['rate_per_day'] ?></span>
-                            <input type="number" step="0.01" name="rate_per_day" value="<?= $row['rate_per_day'] ?>" required form="<?= $formId ?>" style="width: 100px;">
+                            <input type="number" step="0.01" name="rate_per_day" value="<?= $row['rate_per_day'] ?>" required form="<?= $formId ?>" style="width: 80px;">
+                        </td>
+                        <td>
+                            <span style="display:none;"><?= (float)$row['rate_weekend'] ?></span>
+                            <input type="number" step="0.01" name="rate_weekend" value="<?= (float)$row['rate_weekend'] ?>" form="<?= $formId ?>" style="width: 80px;">
+                        </td>
+                        <td>
+                            <span style="display:none;"><?= (float)$row['rate_weekday'] ?></span>
+                            <input type="number" step="0.01" name="rate_weekday" value="<?= (float)$row['rate_weekday'] ?>" form="<?= $formId ?>" style="width: 80px;">
+                        </td>
+                        <td>
+                            <span style="display:none;"><?= (float)$row['rate_consession'] ?></span>
+                            <input type="number" step="0.01" name="rate_consession" value="<?= (float)$row['rate_consession'] ?>" form="<?= $formId ?>" style="width: 80px;">
+                        </td>
+                        <td>
+                            <span style="display:none;"><?= (float)$row['rate_long_stay'] ?></span>
+                            <input type="number" step="0.01" name="rate_long_stay" value="<?= (float)$row['rate_long_stay'] ?>" form="<?= $formId ?>" style="width: 80px;">
                         </td>
                         <td>
                             <span style="display:none;"><?= date('d-m-Y', strtotime($row['effective_from'])) ?></span>
@@ -283,16 +327,20 @@ $(document).ready(function() {
         pageLength: 25,
         scrollX: true,
         autoWidth: false,
-        order: [[4, 'desc']], // Default: Sort by Last Updated DESC
+        order: [[8, 'desc']], // Default: Sort by Last Updated DESC
         orderCellsTop: true,
         columnDefs: [
-            { width: '200px', targets: 0 }, // Room Type
-            { width: '100px', targets: 1 }, // Price
-            { width: '130px', targets: 2 }, // Starting
-            { width: '130px', targets: 3 }, // Ended On
-            { width: '150px', targets: 4 }, // Last Updated
-            { width: '100px', targets: 5 }, // Action
-            { orderable: false, searchable: false, targets: 5 }
+            { width: '180px', targets: 0 }, // Room Type
+            { width: '90px', targets: 1 },  // Price
+            { width: '90px', targets: 2 },  // Weekend
+            { width: '90px', targets: 3 },  // Weekday
+            { width: '90px', targets: 4 },  // Concession
+            { width: '90px', targets: 5 },  // Long Stay
+            { width: '130px', targets: 6 }, // Starting
+            { width: '130px', targets: 7 }, // Ended On
+            { width: '130px', targets: 8 }, // Last Updated
+            { width: '100px', targets: 9 }, // Action
+            { orderable: false, searchable: false, targets: 9 }
         ],
         language: {
             search: "_INPUT_",

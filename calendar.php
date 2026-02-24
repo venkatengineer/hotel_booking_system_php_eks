@@ -2,8 +2,8 @@
 session_start();
 include 'config.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+if (!isset($_SESSION['user_id']) || strcasecmp($_SESSION['role'], 'admin') !== 0) {
+    header("Location: dashboard.php");
     exit();
 }
 

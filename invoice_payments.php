@@ -29,12 +29,26 @@ SELECT
     i.invoice_id,
     i.subtotal,
     i.total_amount AS due_amount,
+    i.tarrif_per_day,
+    i.gross_tariff,
+    i.cleaning_charges,
+    i.total_tariff,
+    i.deduction_1,
+    i.deduction_2,
+    i.net_amount,
+    r.rate_per_day AS db_rate_std,
+    r.rate_weekend AS db_rate_wknd,
+    r.rate_weekday AS db_rate_wkdy,
+    r.rate_consession AS db_rate_cons,
+    r.rate_long_stay AS db_rate_long,
     IFNULL(pay.paid_amount, 0) AS paid_amount,
     pay.bank_name
 FROM tbl_bookings b
 JOIN tbl_customers c ON c.customer_id = b.customer_id
 JOIN tbl_assets a ON a.asset_id = b.asset_id
 LEFT JOIN tbl_invoices i ON i.booking_id = b.booking_id
+LEFT JOIN tbl_rates r ON r.asset_id = b.asset_id 
+    AND b.booking_from BETWEEN r.effective_from AND r.effective_to
 LEFT JOIN (
     SELECT 
         p.invoice_id, 
@@ -281,15 +295,76 @@ button:hover { transform:translateY(-1px); box-shadow:0 6px 12px rgba(0,0,0,0.08
 
 #payTable {
     width:100% !important;
-    min-width:1800px;
+    min-width:2400px;
 }
 
 </style>
 
 
 <script>
-function printPage(){
-    window.print();
+function recalcInvoice(input) {
+    let $tr = $(input).closest('tr');
+    let days = parseFloat($tr.find('[name="days"]').val()) || 1;
+    let base = parseFloat($tr.find('[name="base_tarrif_selector"]').val()) || 0;
+    
+    // Update the hidden actual tariff field
+    $tr.find('[name="base_tarrif"]').val(base);
+
+    // Gross calculation
+    let gross = base * days;
+    $tr.find('.gross-display').text('₹' + gross.toFixed(2));
+    $tr.find('[name="gross_tariff"]').val(gross);
+
+    // If the input was the dropdown, also update total_tariff as a default
+    if ($(input).attr('name') === 'base_tarrif_selector') {
+        $tr.find('[name="total_tariff"]').val(gross.toFixed(2));
+    }
+
+    let cleaning = parseFloat($tr.find('[name="cleaning_charges"]').val()) || 0;
+    let totalTariff = parseFloat($tr.find('[name="total_tariff"]').val()) || 0;
+    let ded1 = parseFloat($tr.find('[name="deduction_1"]').val()) || 0;
+    let ded2 = parseFloat($tr.find('[name="deduction_2"]').val()) || 0;
+    let paid = parseFloat($tr.find('[data-paid]').data('paid')) || 0;
+    let pendingPay = parseFloat($tr.find('[name="amount"]').val()) || 0;
+
+    // Net Amount Calculation
+    let preDedTotal = totalTariff + cleaning;
+    let netAmt = preDedTotal * (1 - (ded1 + ded2) / 100);
+    
+    $tr.find('.net-display').text('₹' + netAmt.toFixed(2));
+    $tr.find('[name="net_amount"]').val(netAmt.toFixed(2));
+    $tr.find('.due-display').text('₹' + netAmt.toFixed(2));
+    $tr.find('[name="due_amount"]').val(netAmt.toFixed(2));
+
+    // Outstanding Calculation
+    let totalPaid = paid + pendingPay;
+    let out = netAmt - totalPaid;
+    $tr.find('.outstanding-display').text('₹' + out.toFixed(2));
+}
+
+function updateInvoice(btn, invoice_id) {
+    let $tr = $(btn).closest('tr');
+    let data = {
+        invoice_id: invoice_id,
+        tarrif_per_day: $tr.find('[name="base_tarrif"]').val(),
+        gross_tariff: $tr.find('[name="gross_tariff"]').val(),
+        cleaning_charges: $tr.find('[name="cleaning_charges"]').val(),
+        total_tariff: $tr.find('[name="total_tariff"]').val(),
+        deduction_1: $tr.find('[name="deduction_1"]').val(),
+        deduction_2: $tr.find('[name="deduction_2"]').val(),
+        net_amount: $tr.find('[name="net_amount"]').val()
+    };
+
+    $.post('update_invoice_breakdown.php', data, function(response) {
+        if (response.success) {
+            alert('Invoice updated successfully! ✨');
+            // Flash row green
+            $tr.css('background-color', '#d1fae5');
+            setTimeout(() => $tr.css('background-color', ''), 1000);
+        } else {
+            alert('Error updating invoice: ' + (response.message || 'Unknown error'));
+        }
+    }, 'json');
 }
 function toggleBank(selectObj)
 {
@@ -315,7 +390,7 @@ function toggleBank(selectObj)
 
 <div style="margin-bottom:10px;">
     <a href="invoice_payments.php" class="btn">↺ Reset Filters</a>
-    <button onclick="printPage()" class="btn">🖨 Print</button>
+    <button onclick="window.print()" class="btn">🖨 Print</button>
 </div>
 
 
@@ -329,6 +404,12 @@ function toggleBank(selectObj)
 <th>Check-In</th>
 <th>Check-Out</th>
 <th>Base</th>
+<th>Gross</th>
+<th>Cleaning</th>
+<th>Total Tariff</th>
+<th>Ded 1 (%)</th>
+<th>Ded 2 (%)</th>
+<th>Net Amt</th>
 <th>Due</th>
 <th>Enter Payment</th>
 <th>Mode</th>
@@ -337,6 +418,12 @@ function toggleBank(selectObj)
 <th>Save</th>
 </tr>
 <tr class="header-row-2">
+<th><input type="text" class="col-search" placeholder="Search"></th>
+<th><input type="text" class="col-search" placeholder="Search"></th>
+<th><input type="text" class="col-search" placeholder="Search"></th>
+<th><input type="text" class="col-search" placeholder="Search"></th>
+<th><input type="text" class="col-search" placeholder="Search"></th>
+<th><input type="text" class="col-search" placeholder="Search"></th>
 <th><input type="text" class="col-search" placeholder="Search"></th>
 <th><input type="text" class="col-search" placeholder="Search"></th>
 <th><input type="text" class="col-search" placeholder="Search"></th>
@@ -358,7 +445,10 @@ function toggleBank(selectObj)
 $days  = (int)$row['no_of_days'];
 $due   = (float)$row['due_amount'];
 $sub   = (float)$row['subtotal'];
-$base  = $days > 0 ? ($sub / $days) : $sub;
+$base  = (float)$row['tarrif_per_day'];
+if ($base <= 0) {
+    $base = $days > 0 ? ($sub / $days) : $sub;
+}
 $paid  = (float)$row['paid_amount'];
 $out   = $due - $paid;
 ?>
@@ -379,12 +469,54 @@ $out   = $due - $paid;
 
 <td><?php echo date('d-m-Y',strtotime($row['booking_to'])); ?></td>
 
-<td class="amount">₹<?php echo number_format($base,2); ?></td>
-
-<td class="amount">₹<?php echo number_format($due,2); ?></td>
+<input type="hidden" name="days" value="<?php echo $days; ?>">
+<input type="hidden" name="base_tarrif" value="<?php echo $base; ?>">
+<input type="hidden" name="gross_tariff" value="<?php echo $row['gross_tariff']; ?>">
+<input type="hidden" name="net_amount" value="<?php echo $row['net_amount']; ?>">
+<input type="hidden" name="due_amount" value="<?php echo $due; ?>">
 
 <td>
-<input type="number" step="0.01" name="amount" required>
+    <select name="base_tarrif_selector" onchange="recalcInvoice(this)" style="width: 110px; font-size: 11px;">
+        <option value="<?php echo (float)$row['db_rate_std']; ?>" <?php if((float)$base == (float)$row['db_rate_std']) echo 'selected'; ?>>Standard: ₹<?php echo number_format((float)$row['db_rate_std'],0); ?></option>
+        <?php if((float)$row['db_rate_wknd'] > 0): ?>
+            <option value="<?php echo (float)$row['db_rate_wknd']; ?>" <?php if((float)$base == (float)$row['db_rate_wknd']) echo 'selected'; ?>>Weekend: ₹<?php echo number_format((float)$row['db_rate_wknd'],0); ?></option>
+        <?php endif; ?>
+        <?php if((float)$row['db_rate_wkdy'] > 0): ?>
+            <option value="<?php echo (float)$row['db_rate_wkdy']; ?>" <?php if((float)$base == (float)$row['db_rate_wkdy']) echo 'selected'; ?>>Weekday: ₹<?php echo number_format((float)$row['db_rate_wkdy'],0); ?></option>
+        <?php endif; ?>
+        <?php if((float)$row['db_rate_cons'] > 0): ?>
+            <option value="<?php echo (float)$row['db_rate_cons']; ?>" <?php if((float)$base == (float)$row['db_rate_cons']) echo 'selected'; ?>>Concession: ₹<?php echo number_format((float)$row['db_rate_cons'],0); ?></option>
+        <?php endif; ?>
+        <?php if((float)$row['db_rate_long'] > 0): ?>
+            <option value="<?php echo (float)$row['db_rate_long']; ?>" <?php if((float)$base == (float)$row['db_rate_long']) echo 'selected'; ?>>Long Stay: ₹<?php echo number_format((float)$row['db_rate_long'],0); ?></option>
+        <?php endif; ?>
+    </select>
+</td>
+
+<td class="amount gross-display">₹<?php echo number_format((float)$row['gross_tariff'],2); ?></td>
+
+<td>
+    <input type="number" step="0.01" name="cleaning_charges" value="<?php echo (float)$row['cleaning_charges']; ?>" oninput="recalcInvoice(this)" style="width: 70px;">
+</td>
+
+<td>
+    <input type="number" step="0.01" name="total_tariff" value="<?php echo (float)$row['total_tariff']; ?>" oninput="recalcInvoice(this)" style="width: 70px;">
+</td>
+
+<td>
+    <input type="number" step="0.01" name="deduction_1" value="<?php echo (float)$row['deduction_1']; ?>" oninput="recalcInvoice(this)" placeholder="%" style="width: 60px;">
+</td>
+
+<td>
+    <input type="number" step="0.01" name="deduction_2" value="<?php echo (float)$row['deduction_2']; ?>" oninput="recalcInvoice(this)" placeholder="%" style="width: 60px;">
+</td>
+
+<td class="amount net-display">₹<?php echo number_format((float)$row['net_amount'],2); ?></td>
+
+<td class="amount due-display">₹<?php echo number_format($due,2); ?></td>
+
+<td>
+<input type="number" step="0.01" name="amount" required oninput="recalcInvoice(this)">
 </td>
 
 <td>
@@ -405,12 +537,14 @@ $out   = $due - $paid;
 <td>
 ₹<?php echo number_format($paid,2); ?><br>
 <span class="small"><?php echo htmlspecialchars($row['bank_name']); ?></span>
+<span data-paid="<?php echo $paid; ?>" style="display:none;"></span>
 </td>
 
-<td class="outstanding">₹<?php echo number_format($out,2); ?></td>
+<td class="outstanding outstanding-display">₹<?php echo number_format($out,2); ?></td>
 
 <td>
-<button type="button" onclick="saveRow(this, <?php echo (int)$row['invoice_id']; ?>)">Save</button>
+<button type="button" onclick="updateInvoice(this, <?php echo (int)$row['invoice_id']; ?>)" style="margin-bottom: 5px; font-size: 11px; padding: 4px 8px;">Save Inv</button><br>
+<button type="button" onclick="saveRow(this, <?php echo (int)$row['invoice_id']; ?>)" style="background: #2d6a4f; color: #fff; font-size: 11px; padding: 4px 8px;">Save Pay</button>
 </td>
 
 </tr>
@@ -443,19 +577,25 @@ $(document).ready(function(){
         orderCellsTop: true,
         columnDefs: [
             { width: '80px', targets: 0 },   // Booking
-            { width: '250px', targets: 1 },  // Customer
+            { width: '220px', targets: 1 },  // Customer
             { width: '150px', targets: 2 },  // Room
-            { width: '80px', targets: 3 },   // Days
-            { width: '120px', targets: 4 },  // Check-In
-            { width: '120px', targets: 5 },  // Check-Out
-            { width: '100px', targets: 6 },  // Base
-            { width: '120px', targets: 7 },  // Due
-            { width: '150px', targets: 8 },  // Enter Payment
-            { width: '180px', targets: 9 },  // Mode
-            { width: '120px', targets: 10 }, // Paid
-            { width: '150px', targets: 11 }, // Outstanding
-            { width: '100px', targets: 12 }, // Save
-            { orderable: false, searchable: false, targets: [8, 9, 12] }
+            { width: '60px', targets: 3 },   // Days
+            { width: '100px', targets: 4 },  // Check-In
+            { width: '100px', targets: 5 },  // Check-Out
+            { width: '80px', targets: 6 },   // Base
+            { width: '80px', targets: 7 },   // Gross
+            { width: '80px', targets: 8 },   // Cleaning
+            { width: '100px', targets: 9 },  // Total Tariff
+            { width: '80px', targets: 10 },  // Ded 1
+            { width: '80px', targets: 11 },  // Ded 2
+            { width: '100px', targets: 12 }, // Net Amt
+            { width: '100px', targets: 13 }, // Due
+            { width: '140px', targets: 14 }, // Enter Payment
+            { width: '160px', targets: 15 }, // Mode
+            { width: '100px', targets: 16 }, // Paid
+            { width: '120px', targets: 17 }, // Outstanding
+            { width: '80px', targets: 18 },  // Save
+            { orderable: false, searchable: false, targets: [14, 15, 18] }
         ],
         initComplete: function() {
             var api = this.api();

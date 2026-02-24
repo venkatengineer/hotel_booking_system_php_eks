@@ -254,16 +254,10 @@ if(!isset($_SESSION['user_id'])) {
 $role = isset($_SESSION['role']) ? trim($_SESSION['role']) : '';
 if (strcasecmp($role, 'admin') === 0):
 ?>
-
-
         <div class="top-Admin">
             <a href="view_rates.php" class="small-btn">💰 Room Rates</a>
             <a href="assets.php" class="small-btn">🏨 Assets</a>
             <a href="add_user.php" class="small-btn">➕ Add User</a>
-        </div>
-        <?php else: ?>
-        <div class="top-Admin" style="justify-content: flex-start;">
-             <a href="view_rates.php" class="small-btn">💰 Room Rates</a>
         </div>
         <?php endif; ?>
 
@@ -280,10 +274,12 @@ if (strcasecmp($role, 'admin') === 0):
                 <h3>Add Booking</h3>
             </a>
 
+            <?php if (strcasecmp($_SESSION['role'], 'admin') === 0): ?>
             <a href="calendar.php" class="widget">
                 <span>📋</span>
                 <h3>View Bookings</h3>
             </a>
+            <?php endif; ?>
 
         </div>
 

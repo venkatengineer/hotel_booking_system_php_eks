@@ -19,7 +19,8 @@ if (isset($_SESSION['role'])) {
 }
 
 if ($role != 'admin') {
-    die("Access Denied 🚫");
+    header("Location: dashboard.php");
+    exit();
 }
 
 /* ================= FETCH ASSETS ================= */
