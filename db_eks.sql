@@ -219,5 +219,5 @@ CREATE TABLE `tbl_users` (
 -- ----------------------------
 -- a  
 INSERT INTO `tbl_users` VALUES ('1', 'admin', 'admin@gmail.com', '$2y$10$Yctjsat9zr0ltcTjpw6s0uGzDaEqE.RpKc4D6h006PKEAhK41CXui', 'Admin', '1', '2026-02-16 00:00:00', null);
-INSERT INTO `tbl_users` VALUES ('2', 'Manager', 'manager@gmail.com', '$2y$10$KfLXcOQkV25/.n7WEMnhB.FbctBD7dPd8sHEFfFy5amMGqbipsiS.', 'Admin', '1', '2026-02-16 10:11:29', null);
+INSERT INTO `tbl_users` VALUES ('2', 'Manager', 'manager@gmail.com', '$2y$10$KfLXcOQkV25/.n7WEMnhB.FbctBD7dPd8sHEFfFy5amMGqbipsiS.', 'Staff', '1', '2026-02-16 10:11:29', null);
 INSERT INTO `tbl_users` VALUES ('3', 'staff', 'staff@gmail.com', '$2y$10$QKg4.RDm2RWFUmbl3NRCtuoQlD7s.jM3JE153HFecgNnzCBN7bYWG', 'Staff', '1', '2026-02-16 10:12:03', null);

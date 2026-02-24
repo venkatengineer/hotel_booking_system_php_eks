@@ -12,6 +12,11 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+if (strcasecmp($_SESSION['role'], 'admin') !== 0) {
+    header("Location: dashboard.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     header("Location: invoice_payments.php");
     exit();

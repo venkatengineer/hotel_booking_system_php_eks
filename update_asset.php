@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $role = strtolower(trim($_SESSION['role']));
-if ($role != 'admin' && $role != 'manager') {
+if ($role != 'admin') {
     die("Access Denied");
 }
 

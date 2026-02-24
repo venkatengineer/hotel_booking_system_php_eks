@@ -92,7 +92,7 @@ $result = $conn->query($query);
         }
 
         .add-btn {
-            background: #ffd6a5;
+            background: #b9fbc0;
         }
 
         .back-btn:hover, .add-btn:hover {
@@ -233,8 +233,8 @@ $result = $conn->query($query);
             <tr class="search-row header-row-2">
                 <th><input type="text" class="col-search" placeholder="Search Room"></th>
                 <th><input type="text" class="col-search" placeholder="Search Price"></th>
-                <th><input type="text" class="col-search" placeholder="Search Start"></th>
-                <th><input type="text" class="col-search" placeholder="Search End"></th>
+                <th><input type="text" class="col-search" placeholder="DD-MM-YYYY"></th>
+                <th><input type="text" class="col-search" placeholder="DD-MM-YYYY"></th>
                 <th><input type="text" class="col-search" placeholder="Search Date"></th>
                 <th></th>
             </tr>
@@ -250,12 +250,15 @@ $result = $conn->query($query);
                             <strong><?= htmlspecialchars($row['asset_name']) ?></strong>
                         </td>
                         <td>
+                            <span style="display:none;"><?= $row['rate_per_day'] ?></span>
                             <input type="number" step="0.01" name="rate_per_day" value="<?= $row['rate_per_day'] ?>" required form="<?= $formId ?>" style="width: 100px;">
                         </td>
                         <td>
+                            <span style="display:none;"><?= date('d-m-Y', strtotime($row['effective_from'])) ?></span>
                             <input type="date" name="effective_from" value="<?= $row['effective_from'] ?>" required form="<?= $formId ?>">
                         </td>
                         <td>
+                            <span style="display:none;"><?= date('d-m-Y', strtotime($row['effective_to'])) ?></span>
                             <input type="date" name="effective_to" value="<?= $row['effective_to'] ?>" required form="<?= $formId ?>">
                         </td>
                         <td>
@@ -279,8 +282,18 @@ $(document).ready(function() {
     var table = $('#ratesTable').DataTable({
         pageLength: 25,
         scrollX: true,
+        autoWidth: false,
         order: [[4, 'desc']], // Default: Sort by Last Updated DESC
         orderCellsTop: true,
+        columnDefs: [
+            { width: '200px', targets: 0 }, // Room Type
+            { width: '100px', targets: 1 }, // Price
+            { width: '130px', targets: 2 }, // Starting
+            { width: '130px', targets: 3 }, // Ended On
+            { width: '150px', targets: 4 }, // Last Updated
+            { width: '100px', targets: 5 }, // Action
+            { orderable: false, searchable: false, targets: 5 }
+        ],
         language: {
             search: "_INPUT_",
             searchPlaceholder: "Search all fields..."

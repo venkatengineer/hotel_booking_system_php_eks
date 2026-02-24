@@ -257,13 +257,13 @@ if (strcasecmp($role, 'admin') === 0):
 
 
         <div class="top-Admin">
-            <a href="view_rates.php" class="small-btn" style="background: #ffd6a5;">💰 Room Rates</a>
+            <a href="view_rates.php" class="small-btn">💰 Room Rates</a>
             <a href="assets.php" class="small-btn">🏨 Assets</a>
             <a href="add_user.php" class="small-btn">➕ Add User</a>
         </div>
         <?php else: ?>
         <div class="top-Admin" style="justify-content: flex-start;">
-             <a href="view_rates.php" class="small-btn" style="background: #ffd6a5;">💰 Room Rates</a>
+             <a href="view_rates.php" class="small-btn">💰 Room Rates</a>
         </div>
         <?php endif; ?>
 
@@ -288,12 +288,11 @@ if (strcasecmp($role, 'admin') === 0):
         </div>
 
         <!-- ===== BOTTOM BUTTONS ===== -->
-<!-- K -->
         <div class="bottom-grid">
-            <a href="invoice_payments.php" class="bottom-btn">💳 Payment and Invoice</a>
-            <a href="billing_report.php" class="bottom-btn">📊 Billing Report</a>
-
-            
+            <?php if (strcasecmp($_SESSION['role'], 'admin') === 0): ?>
+                <a href="invoice_payments.php" class="bottom-btn">💳 Payment and Invoice</a>
+                <a href="billing_report.php" class="bottom-btn">📊 Billing Report</a>
+            <?php endif; ?>
         </div>
 
         <a href="logout.php" class="logout-btn">Logout</a>

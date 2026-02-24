@@ -93,6 +93,9 @@ input, select {
        placeholder="Passport Number"
        style="display:none;">
 
+<input type="text" name="country_of_origin" id="countryField"
+       placeholder="Country of Origin" required>
+
 <input type="text" name="full_name" id="full_name"
        placeholder="Full Name" required>
 
@@ -116,6 +119,7 @@ input, select {
 var nationality = document.getElementById("nationalitySelect");
 var aadhaar = document.getElementById("aadhaarField");
 var passport = document.getElementById("passportField");
+var country = document.getElementById("countryField");
 
 /* Function to control visibility */
 function toggleIdFields() {
@@ -126,6 +130,9 @@ function toggleIdFields() {
 
         passport.style.display = "none";
         passport.required = false;
+
+        country.value = "Indian";
+        country.readOnly = true;
     }
     else if(nationality.value === "Foreign"){
         passport.style.display = "block";
@@ -133,10 +140,16 @@ function toggleIdFields() {
 
         aadhaar.style.display = "none";
         aadhaar.required = false;
+
+        country.value = "";
+        country.readOnly = false;
+        country.placeholder = "Enter Country Name";
     }
     else{
         aadhaar.style.display = "none";
         passport.style.display = "none";
+        country.value = "";
+        country.readOnly = false;
     }
 }
 

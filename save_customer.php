@@ -24,7 +24,8 @@ $passport_no = isset($_POST['passport_no']) ? trim($_POST['passport_no']) : '';
 $full_name   = isset($_POST['full_name']) ? trim($_POST['full_name']) : '';
 $phone       = isset($_POST['phone']) ? trim($_POST['phone']) : '';
 $email       = isset($_POST['email']) ? trim($_POST['email']) : '';
-$address     = isset($_POST['address']) ? trim($_POST['address']) : '';
+$address           = isset($_POST['address']) ? trim($_POST['address']) : '';
+$country_of_origin = isset($_POST['country_of_origin']) ? trim($_POST['country_of_origin']) : '';
 
 /* ================= VALIDATIONS ================= */
 
@@ -107,15 +108,16 @@ $check->close();
 
 $stmt = $conn->prepare("
 INSERT INTO tbl_customers
-(nationality, aadhaar_no, passport_no, full_name, phone, email, address, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+(nationality, aadhaar_no, passport_no, country_of_origin, full_name, phone, email, address, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
 ");
 
 $stmt->bind_param(
-    "sssssss",
+    "ssssssss",
     $nationality,
     $aadhaar_no,
     $passport_no,
+    $country_of_origin,
     $full_name,
     $phone,
     $email,
