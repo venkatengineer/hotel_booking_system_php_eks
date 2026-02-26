@@ -2,7 +2,10 @@
 session_start();
 include 'config.php';
 
-if (!isset($_SESSION['user_id']) || strcasecmp($_SESSION['role'], 'admin') !== 0) {
+$allowed_roles = ['admin', 'host', 'admn1', 'admn2'];
+$current_role  = isset($_SESSION['role']) ? strtolower(trim($_SESSION['role'])) : '';
+
+if (!isset($_SESSION['user_id']) || !in_array($current_role, $allowed_roles)) {
     header("Location: dashboard.php");
     exit();
 }
@@ -43,7 +46,7 @@ $roomColors = [
     "#ffc6d9",  // pink
     "#b9fbc0",  // green
     "#cdb4db",  // lavender
-    "#a0c4ff",  // light blue
+    "#fbcfe8",  // light rose
     "#ffd6a5",  // peach
 ];
 
@@ -115,7 +118,8 @@ $conn->close();
 
     <style>
         body {
-            background: linear-gradient(135deg, #d8f3dc, #ffd6e8);
+            background: linear-gradient(135deg,#d8f3dc, #ffd6e8);
+            background-attachment: fixed;
         }
 
         .calendar-wrapper {
@@ -140,13 +144,13 @@ $conn->close();
 }
 
 .modal-content {
-    background: linear-gradient(135deg,#d8f3dc,#ffd6e8);
+    background: linear-gradient(135deg,#d8f3dc, #ffd6e8);
     width: 400px;
     margin: 10% auto;
-    padding: 25px;
-    border-radius: 25px;
+    padding: 30px;
+    border-radius: 30px;
     box-shadow: 0 25px 50px rgba(0,0,0,0.2);
-    color: #2d6a4f;
+    color: #1a3a3a;
     animation: popIn 0.3s ease;
 }
 
@@ -167,9 +171,10 @@ $conn->close();
             text-align: center;
             color: #2d6a4f;
             margin-bottom: 20px;
+            font-weight: 700;
         }
         .back-btn {
-    background: #a0c4ff;
+    background: #b9fbc0;
     border: none;
     padding: 8px 18px;
     border-radius: 20px;
@@ -194,14 +199,15 @@ $conn->close();
         }
 
         .fc-button {
-            background: #b9fbc0 !important;
+            background: linear-gradient(90deg, #b9fbc0, #ffc6d9) !important;
             border: none !important;
             color: #2d6a4f !important;
             border-radius: 20px !important;
+            font-weight: 600 !important;
         }
 
         .fc-button:hover {
-            background: #ffc6d9 !important;
+            background: linear-gradient(90deg, #ffc6d9, #b9fbc0) !important;
         }
     </style>
 </head>

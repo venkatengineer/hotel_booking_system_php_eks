@@ -42,6 +42,11 @@ if ($result->num_rows === 1) {
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['role'] = $role;
+        
+        /* Generate CSRF Token */
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(openssl_random_pseudo_bytes(32));
+        }
 
         header("Location: dashboard.php");
         exit();

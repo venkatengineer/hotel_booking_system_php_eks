@@ -41,7 +41,7 @@ h2{
 p{
     color:#666;
     margin-bottom:30px;
-}
+}   
 
 /* Buttons container */
 .btn-group{

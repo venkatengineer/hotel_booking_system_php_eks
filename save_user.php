@@ -87,10 +87,10 @@ $conn->close();
             color: #2d6a4f;
         }
 
-        a {
+        .btn {
             display: inline-block;
             margin-top: 20px;
-            padding: 12px 25px;
+            padding: 12px 30px;
             border-radius: 30px;
             background: linear-gradient(90deg,#b9fbc0,#ffc6d9);
             text-decoration: none;

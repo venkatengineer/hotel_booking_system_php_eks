@@ -2,7 +2,10 @@
 session_start();
 include 'config.php';
 
-if (!isset($_SESSION['user_id']) || strcasecmp($_SESSION['role'], 'admin') !== 0) {
+$allowed_roles = ['admin', 'host', 'admn1', 'admn2'];
+$current_role  = isset($_SESSION['role']) ? strtolower(trim($_SESSION['role'])) : '';
+
+if (!isset($_SESSION['user_id']) || !in_array($current_role, $allowed_roles)) {
     header("Location: dashboard.php");
     exit();
 }
@@ -41,8 +44,11 @@ $result = $conn->query($query);
 
     <style>
         body {
-            background: linear-gradient(135deg, #d8f3dc, #ffd6e8);
-            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg,#d8f3dc, #ffd6e8);
+            background-attachment: fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1a3a3a;
             margin: 0;
             padding: 40px;
         }
@@ -50,72 +56,74 @@ $result = $conn->query($query);
         .wrapper {
             width: 95%;
             margin: 0 auto;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
             padding: 30px;
-            border-radius: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
         }
 
-        h1 {
-            color: #2d6a4f;
-            text-align: center;
-            margin-bottom: 30px;
-        }
+        h1 { color: #2d6a4f; margin-bottom:30px; font-weight: 700; letter-spacing: -0.5px; text-align: center; }
 
         .header-actions {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         table.dataTable thead th {
-            background: #b9fbc0 !important;
+            background: #d8f3dc !important;
             color: #2d6a4f !important;
-            padding: 15px !important;
-            border-bottom: none !important;
+            padding: 18px 12px !important;
+            border-bottom: 2px solid #b9fbc0 !important;
+            text-align: center !important;
+            font-weight: 700 !important;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            vertical-align: middle;
         }
 
         table.dataTable tbody td {
-            padding: 12px 15px !important;
-            border-bottom: 1px solid #eee !important;
-            color: #444;
+            padding: 15px 12px !important;
+            border-bottom: 1px solid #eceff1 !important;
+            color: #37474f;
+            font-size: 14px;
+            text-align: center !important;
+            vertical-align: middle;
         }
 
-        .back-btn, .add-btn {
-            display: inline-block;
-            text-decoration: none;
-            color: #2d6a4f;
-            font-weight: bold;
-            background: #b9fbc0;
+        .btn-modern {
             padding: 10px 20px;
-            border-radius: 20px;
-            transition: 0.3s;
+            border-radius: 25px;
+            background: linear-gradient(90deg, #b9fbc0, #ffc6d9);
+            color: #2d6a4f;
             border: none;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .add-btn {
-            background: #b9fbc0;
-        }
-
-        .back-btn:hover, .add-btn:hover {
-            background: #ffc6d9;
+        .btn-modern:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            background: linear-gradient(90deg, #ffc6d9, #b9fbc0);
         }
 
         .new-rate-form {
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 20px;
+            padding: 25px;
+            border-radius: 25px;
             margin-bottom: 30px;
             display: none;
-            border: 1px solid #eee;
+            border: 1px solid #e0e0e0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 15px;
             align-items: flex-end;
         }
@@ -123,53 +131,33 @@ $result = $conn->query($query);
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
         }
 
-        input[type="number"], input[type="date"], select {
-            padding: 8px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            background: #fdfdfd;
+        input, select {
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid #cfd8dc;
+            background: #fff;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.3s;
         }
-
-        .btn-update, .btn-save {
-            background: #b9fbc0;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #2d6a4f;
-            transition: 0.3s;
-        }
-
-        .btn-save {
-            padding: 12px 25px;
-            background: #b9fbc0;
-        }
-
-        .btn-update:hover, .btn-save:hover {
-            background: #ffc6d9;
-            transform: translateY(-2px);
+        input:focus, select:focus {
+            outline: none;
+            border-color: #b9fbc0;
+            box-shadow: 0 0 0 3px rgba(185, 251, 192, 0.2);
         }
 
         /* COLUMN SEARCH STYLES */
         thead input.col-search {
             width: 100%;
-            padding: 5px 6px;
-            box-sizing: border-box;
-            border-radius: 8px;
-            border: 1px solid #cce8d4;
-            background: #f0fdf4;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid #b9fbc0;
+            background: #f1fafa;
             font-size: 11px;
-            color: #2d6a4f;
-            text-align: center;
-        }
-        thead input.col-search:focus {
-            outline: none;
-            border-color: #b9fbc0;
-            background: #fff;
+            font-weight: 500;
         }
     </style>
 </head>

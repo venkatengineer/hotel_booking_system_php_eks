@@ -12,8 +12,9 @@ unset($_SESSION['login_error']);
     <link rel="stylesheet" href="css/style.css">
     <style>
         body {
-            background: linear-gradient(135deg, #d8f3dc, #ffd6e8);
+            background: linear-gradient(135deg,#d8f3dc, #ffd6e8);
             font-family: 'Segoe UI', sans-serif;
+            background-attachment: fixed;
         }
 
         .login-wrapper {
@@ -46,7 +47,7 @@ unset($_SESSION['login_error']);
 
         .subtitle {
             margin-bottom: 30px;
-            color: #666;
+            color: #455a64;
         }
 
         .input-group {
@@ -57,16 +58,17 @@ unset($_SESSION['login_error']);
             width: 100%;
             padding: 14px 20px;
             border-radius: 50px;
-            border: none;
+            border: 1px solid #cfd8dc;
             outline: none;
             background: #ffffff;
-            box-shadow: inset 0 4px 8px rgba(0,0,0,0.05);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
             transition: 0.3s;
             font-size: 14px;
         }
 
         .input-group input:focus {
-            box-shadow: 0 0 0 3px #b9fbc0;
+            border-color: #b9fbc0;
+            box-shadow: 0 0 0 3px rgba(185, 251, 192, 0.2);
         }
 
         .login-btn {
@@ -82,8 +84,9 @@ unset($_SESSION['login_error']);
         }
 
         .login-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            background: linear-gradient(90deg, #ffc6d9, #b9fbc0);
         }
 
         .error-box {

@@ -245,14 +245,15 @@ if(!isset($_SESSION['user_id'])) {
 
 
         <h1 class="main-title">Eternal Kalyan Dashboard</h1>
-        <p class="welcome-text">Welcome, <?php echo $_SESSION['username']; ?> ✨</p>
+        <p class="welcome-text">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?> ✨</p>
 
 
 
         
          <?php
-$role = isset($_SESSION['role']) ? trim($_SESSION['role']) : '';
-if (strcasecmp($role, 'admin') === 0):
+$role = isset($_SESSION['role']) ? strtolower(trim($_SESSION['role'])) : '';
+$host_roles = ['admin', 'host', 'admn1', 'admn2'];
+if (in_array($role, $host_roles)):
 ?>
         <div class="top-Admin">
             <a href="view_rates.php" class="small-btn">💰 Room Rates</a>
@@ -264,17 +265,19 @@ if (strcasecmp($role, 'admin') === 0):
         <!-- ===== MIDDLE WIDGETS ===== -->
         <div class="widget-grid">
 
-            <a href="add_customer.php" class="widget">
-                <span>👤</span>
-                <h3>Add Customer</h3>
-            </a>
-
             <a href="register_booking.php" class="widget">
                 <span>📝</span>
                 <h3>Add Booking</h3>
             </a>
 
-            <?php if (strcasecmp($_SESSION['role'], 'admin') === 0): ?>
+            <?php if (in_array($_SESSION['role'], $host_roles)): ?>
+            <a href="rate_determination.php" class="widget">
+                <span>💰</span>
+                <h3>Rate Determination</h3>
+            </a>
+            <?php endif; ?>
+
+            <?php if (in_array($_SESSION['role'], $host_roles)): ?>
             <a href="calendar.php" class="widget">
                 <span>📋</span>
                 <h3>View Bookings</h3>
@@ -285,7 +288,7 @@ if (strcasecmp($role, 'admin') === 0):
 
         <!-- ===== BOTTOM BUTTONS ===== -->
         <div class="bottom-grid">
-            <?php if (strcasecmp($_SESSION['role'], 'admin') === 0): ?>
+            <?php if (in_array($_SESSION['role'], $host_roles)): ?>
                 <a href="invoice_payments.php" class="bottom-btn">💳 Payment and Invoice</a>
                 <a href="billing_report.php" class="bottom-btn">📊 Billing Report</a>
             <?php endif; ?>

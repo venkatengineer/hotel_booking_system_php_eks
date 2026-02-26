@@ -3,14 +3,10 @@ session_start();
 include 'config.php';
 
 /* Check login */
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+$allowed_roles = ['admin', 'host', 'admn1', 'admn2'];
+$current_role  = isset($_SESSION['role']) ? strtolower(trim($_SESSION['role'])) : '';
 
-/* Check role safely (PHP 5 compatible) */
-/* L */
-if (!isset($_SESSION['role']) || strtolower($_SESSION['role']) != 'admin') {
+if (!isset($_SESSION['user_id']) || !in_array($current_role, $allowed_roles)) {
     header("Location: dashboard.php");
     exit();
 }
@@ -28,8 +24,11 @@ $users_res = $conn->query("SELECT user_id, username, email, role, is_active, cre
 
     <style>
         body {
-            background: linear-gradient(135deg, #d8f3dc, #ffd6e8);
-            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg,#d8f3dc, #ffd6e8);
+            background-attachment: fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1a3a3a;
             margin: 0;
             padding: 40px;
         }
@@ -37,67 +36,71 @@ $users_res = $conn->query("SELECT user_id, username, email, role, is_active, cre
         .wrapper {
             width: 95%;
             margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            padding: 35px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
         }
 
-        h1 {
-            color: #2d6a4f;
-            text-align: center;
-            margin-bottom: 30px;
-        }
+        h1 { color: #2d6a4f; margin-bottom:30px; font-weight: 700; letter-spacing: -0.5px; text-align: center; }
 
         .header-actions {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         table.dataTable thead th {
-            background: #b9fbc0 !important;
+            background: #d8f3dc !important;
             color: #2d6a4f !important;
-            padding: 15px !important;
-            border-bottom: none !important;
+            padding: 18px 12px !important;
+            border-bottom: 2px solid #b9fbc0 !important;
+            text-align: center !important;
+            font-weight: 700 !important;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            vertical-align: middle;
         }
 
         table.dataTable tbody td {
-            padding: 12px 15px !important;
-            border-bottom: 1px solid #eee !important;
+            padding: 15px 12px !important;
+            border-bottom: 1px solid #eceff1 !important;
             color: #444;
+            vertical-align: middle;
+            text-align: center !important;
         }
 
-        .back-btn, .add-btn {
+        .back-btn, .add-btn, .btn-save {
             display: inline-block;
             text-decoration: none;
             color: #2d6a4f;
-            font-weight: bold;
-            background: #b9fbc0;
+            font-weight: 600;
+            background: linear-gradient(90deg, #b9fbc0, #ffc6d9);
             padding: 10px 20px;
             border-radius: 20px;
-            transition: 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        .add-btn {
-            background: #ffd6a5;
-        }
-
-        .back-btn:hover, .add-btn:hover {
-            background: #ffc6d9;
+        .back-btn:hover, .add-btn:hover, .btn-save:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            background: linear-gradient(90deg, #ffc6d9, #b9fbc0);
         }
 
         .new-user-form {
             background: #f8f9fa;
-            padding: 30px;
+            padding: 25px;
             border-radius: 25px;
             margin-bottom: 30px;
             display: none;
-            border: 1px solid #eee;
+            border: 1px solid #e0e0e0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .form-grid {
@@ -115,36 +118,26 @@ $users_res = $conn->query("SELECT user_id, username, email, role, is_active, cre
 
         input, select {
             width: 100%;
-            padding: 10px;
-            border-radius: 15px;
-            border: 1px solid #ddd;
-            background: #fdfdfd;
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid #cfd8dc;
+            background: #fff;
+            transition: all 0.3s;
         }
-
-        .btn-save {
-            padding: 12px 30px;
-            border-radius: 20px;
-            border: none;
-            font-weight: 600;
-            background: linear-gradient(90deg, #b9fbc0, #ffd6a5);
-            cursor: pointer;
-            color: #2d6a4f;
-            transition: 0.3s;
-        }
-
-        .btn-save:hover {
-            background: #ffc6d9;
-            transform: translateY(-2px);
+        input:focus, select:focus {
+            outline: none;
+            border-color: #b9fbc0;
+            box-shadow: 0 0 0 3px rgba(185, 251, 192, 0.2);
         }
 
         .status-badge {
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 12px;
             font-size: 0.85em;
-            font-weight: bold;
+            font-weight: 700;
         }
-        .status-active { background: #b9fbc0; color: #2d6a4f; }
-        .status-inactive { background: #ffd6a5; color: #8e3b63; }
+        .status-active { background: #e8f5e9; color: #2e7d32; }
+        .status-inactive { background: #ffebee; color: #c62828; }
     </style>
 </head>
 <body>
